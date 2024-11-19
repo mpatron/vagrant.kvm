@@ -12,13 +12,14 @@
 # PYTHONUNBUFFERED=1 ANSIBLE_NOCOLOR=False ANSIBLE_CONFIG=ansible.cfg ansible-playbook --limit="all" --inventory-file=inventory --extra-vars=\{\"PROXY_ON\":false,\"PROXY_SERVER\":\"\"\} -v provision.yml
 
 # ENV["LC_ALL"] = "fr_FR.UTF-8"
-VM_COUNT = 4
+VM_COUNT = 6
 VM_RAM = "4096" # 1024 2048 3072 4096 6144 8192
-VM_CPU = 4
+VM_CPU = 2
 # VM
 # IMAGE = "ubuntu/focal64" #20.04 LTS
 # IMAGE = "generic/ubuntu2204"
-IMAGE = "generic/debian12"
+# IMAGE = "generic/debian12"
+IMAGE = "almalinux/9"
 # LXC
 # IMAGE = "hibox/focal64"
 # IMAGE = "ubuntu/focal/cloud"
@@ -79,13 +80,14 @@ Vagrant.configure("2") do |config|
 for N in {0..#{VM_COUNT}}; do
   [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]] && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
 done
+sudo sed '/127.0.1.1/d' /etc/hosts
 sudo hostnamectl set-hostname node#{i}.jobjects.net
 sudo sed -i -e "\\#PasswordAuthentication no# s#PasswordAuthentication no#PasswordAuthentication yes#g" /etc/ssh/sshd_config
 sudo systemctl restart sshd
-sudo apt-get update -y && sudo apt-get install sshpass -y
+# sudo apt-get update -y && sudo apt-get install sshpass -y
+sudo dnf update -y && dnf install sshpass bash-completion -y 
 # =============================================================================
 # Ajout certificat ssh pour vagrant
-sudo apt-get update -y && sudo apt-get install sshpass -y
 bash -c 'cat << EOF > /home/vagrant/.ssh/id_ed25519
 -----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
@@ -103,6 +105,11 @@ sudo chmod 600 /home/vagrant/.ssh/id_ed25519
 sudo chmod 600 /home/vagrant/.ssh/id_ed25519.pub
 sudo chmod 600 /home/vagrant/.ssh/authorized_keys
 for N in {0..#{VM_COUNT}}; do
+  if [[ ! -f /home/vagrant/.ssh/config ]]; then
+    sudo touch /home/vagrant/.ssh/config
+    sudo chmod 600 /home/vagrant/.ssh/config
+    sudo chown vagrant:vagrant /home/vagrant/.ssh/config
+  fi
   if [[ ! $(grep "Host node${N}" /home/vagrant/.ssh/config) ]]; then
     echo "Host node${N}" | sudo tee -a /home/vagrant/.ssh/config
     echo "    Hostname 192.168.56.14${N}" | sudo tee -a /home/vagrant/.ssh/config

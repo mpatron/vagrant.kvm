@@ -59,3 +59,9 @@ vi vagrant-libvirt.gemspec # See up
 gem build
 VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install ./vagrant-libvirt-0.12.3.pre.18.gem
 ~~~
+
+## Cleanning
+
+~~~bash
+for N in {0..5}; do ssh-keygen -f '/home/mickael/.ssh/known_hosts' -R 192.168.56.14${N}; done
+~~~
