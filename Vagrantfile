@@ -80,7 +80,7 @@ Vagrant.configure("2") do |config|
 for N in {0..#{VM_COUNT}}; do
   [[ ! $(grep "192.168.56.14${N} node${N}.jobjects.net node${N}" /etc/hosts) ]] && echo $(echo "192.168.56.14${N} node${N}.jobjects.net node${N}" | sudo tee -a /etc/hosts)
 done
-sudo sed '/127.0.1.1/d' /etc/hosts
+sudo sed -i '/127.0.1.1/d' /etc/hosts
 sudo hostnamectl set-hostname node#{i}.jobjects.net
 sudo sed -i -e "\\#PasswordAuthentication no# s#PasswordAuthentication no#PasswordAuthentication yes#g" /etc/ssh/sshd_config
 sudo systemctl restart sshd
